@@ -1,0 +1,89 @@
+/* frontend/src/components/NoteCard.css */
+.note-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.note-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(110, 72, 170, 0.3);
+  border-color: rgba(110, 72, 170, 0.4);
+}
+
+.note-card.pinned {
+  border-left: 5px solid #f39c12;
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.note-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.4rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.note-card p {
+  color: #ccc;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.note-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.edit-btn, .delete-btn, .pin-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  background: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+}
+
+.edit-btn:hover {
+  background: #3498db;
+  color: white;
+}
+
+.delete-btn {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+.pin-btn {
+  background: rgba(243, 156, 18, 0.2);
+  color: #f39c12;
+}
+
+.pin-btn:hover {
+  background: #f39c12;
+  color: white;
+}
+
+.pin-btn.pinned {
+  background: #f39c12;
+  color: white;
+}
