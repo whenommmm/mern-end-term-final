@@ -34,11 +34,17 @@ function App() {
     if (searchQuery.trim() === '') {
       setFilteredNotes(notes);
     } else {
-      const filtered = notes.filter(note =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const q = searchQuery.toLowerCase();
+      const filtered = notes.filter(note => {
+        const title = (note.title || '').toLowerCase();
+        const content = (note.content || '').toLowerCase();
+        const category = (note.category || '').toLowerCase();
+        return (
+          title.includes(q) ||
+          content.includes(q) ||
+          category.includes(q)
+        );
+      });
       setFilteredNotes(filtered);
     }
   }, [searchQuery, notes]);
