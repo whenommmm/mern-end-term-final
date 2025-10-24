@@ -18,8 +18,9 @@ function NoteModal({ isOpen, onClose, onSave, editingNote }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ title, content }, editingNote?._id);
-    onClose();
+    // Call onSave with the note data. The parent (`App.jsx`) decides whether
+    // to create or update based on its `editingNote` state.
+    onSave({ title, content });
   };
 
   if (!isOpen) return null;

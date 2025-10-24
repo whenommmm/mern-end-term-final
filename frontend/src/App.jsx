@@ -1,157 +1,170 @@
-// frontend/src/App.jsx
 import { useState, useEffect } from 'react';
-import NoteCard from './components/NoteCard.jsx';
-import NoteModal from './components/NoteModal.jsx';
-import SearchBar from './components/SearchBar.jsx';
 import './App.css';
-import './components/NoteCard.css';
-import './components/NoteModal.css';
+import NoteCard from './components/NoteCard';
+import NoteModal from './components/NoteModal';
+import SearchBar from './components/SearchBar';
+
+const API_URL = 'https://mern-end-term-final.onrender.com/api/notes';
 
 function App() {
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Load notes
+  // Fetch all notes
+  const fetchNotes = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setNotes(data);
+      setFilteredNotes(data);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    }
+  };
+
   useEffect(() => {
     fetchNotes();
   }, []);
 
-  const fetchNotes = async () => {
-    try {
-      const res = await fetch('https://quicknotes-backend.onrender.com/api/notes');
-      const data = await res.json();
-      setNotes(data);
-      setFilteredNotes(data);
-    } catch (err) {
-      console.error('Failed to fetch notes:', err);
-    }
-  };
-
-  // Filter notes
+  // Filter notes based on search query
   useEffect(() => {
-    let filtered = notes;
-
-    if (searchTerm) {
-      filtered = filtered.filter(note =>
-        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchTerm.toLowerCase())
+    if (searchQuery.trim() === '') {
+      setFilteredNotes(notes);
+    } else {
+      const filtered = notes.filter(note =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      setFilteredNotes(filtered);
     }
+  }, [searchQuery, notes]);
 
-    if (categoryFilter !== 'All') {
-      filtered = filtered.filter(note => note.category === categoryFilter);
-    }
-
-    // Sort: pinned first
-    filtered.sort((a, b) => b.isPinned - a.isPinned);
-    setFilteredNotes(filtered);
-  }, [notes, searchTerm, categoryFilter]);
-
-  const handleSave = async (noteData, id) => {
+  // Add or update note
+  const handleSaveNote = async (noteData) => {
     try {
-      if (id) {
-        // Update
-        const res = await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}`, {
-
+      if (editingNote) {
+        // Update existing note
+        const response = await fetch(`${API_URL}/${editingNote._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(noteData),
+          body: JSON.stringify(noteData)
         });
-        const updated = await res.json();
-        setNotes(notes.map(n => n._id === id ? updated : n));
+        const updatedNote = await response.json();
+        setNotes(notes.map(note => 
+          note._id === updatedNote._id ? updatedNote : note
+        ));
       } else {
-        // Create
-        const res = await fetch('https://quicknotes-backend.onrender.com/api/notes', {
+        // Create new note
+        const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(noteData),
+          body: JSON.stringify(noteData)
         });
-        const newNote = await res.json();
-        setNotes([...notes, newNote]);
+        const newNote = await response.json();
+        setNotes([newNote, ...notes]);
       }
-      setModalOpen(false);
+      setIsModalOpen(false);
       setEditingNote(null);
-    } catch (err) {
-      alert('Failed to save note. Check console.');
-      console.error(err);
+    } catch (error) {
+      console.error('Error saving note:', error);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this note?')) return;
+  // Delete note
+  const handleDeleteNote = async (id) => {
+    if (window.confirm('Are you sure you want to delete this note?')) {
+      try {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        setNotes(notes.filter(note => note._id !== id));
+      } catch (error) {
+        console.error('Error deleting note:', error);
+      }
+    }
+  };
+
+  // Toggle pin status
+  const handleTogglePin = async (id) => {
     try {
-      await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}`, { method: 'DELETE' });
-
-      setNotes(notes.filter(n => n._id !== id));
-    } catch (err) {
-      alert('Delete failed');
+      const response = await fetch(`${API_URL}/${id}/pin`, {
+        method: 'PATCH'
+      });
+      const updatedNote = await response.json();
+      setNotes(notes.map(note => 
+        note._id === updatedNote._id ? updatedNote : note
+      ));
+    } catch (error) {
+      console.error('Error toggling pin:', error);
     }
   };
 
-  const handlePin = async (id) => {
-    try {
-await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}/pin`, { method: 'PATCH' });
-      setNotes(notes.map(n => n._id === id ? { ...n, isPinned: !n.isPinned } : n));
-    } catch (err) {
-      alert('Pin failed');
-    }
-  };
-
-  const openModal = (note = null) => {
+  // Open modal for editing
+  const handleEditNote = (note) => {
     setEditingNote(note);
-    setModalOpen(true);
+    setIsModalOpen(true);
+  };
+
+  // Open modal for new note
+  const handleAddNote = () => {
+    setEditingNote(null);
+    setIsModalOpen(true);
   };
 
   return (
     <div className="app">
-      <header>
-        <h1>QuickNotes</h1>
-        <button onClick={() => openModal()} className="add-btn">
-          + New Note
-        </button>
+      <header className="header">
+        <h1>📝 QuickNotes</h1>
+        <p className="subtitle">Capture your thoughts instantly</p>
       </header>
 
-      <SearchBar onSearch={setSearchTerm} />
+      <div className="container">
+        <div className="controls">
+          <SearchBar 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          <button className="btn btn-primary" onClick={handleAddNote}>
+            + New Note
+          </button>
+        </div>
 
-      <div className="filters">
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-          <option value="All">All Categories</option>
-          <option>General</option>
-          <option>Work</option>
-          <option>Personal</option>
-          <option>Ideas</option>
-        </select>
+        <div className="notes-grid">
+          {filteredNotes.length === 0 ? (
+            <div className="empty-state">
+              <p>
+                {searchQuery 
+                  ? 'No notes found matching your search.' 
+                  : 'No notes yet. Create your first note!'}
+              </p>
+            </div>
+          ) : (
+            filteredNotes.map(note => (
+              <NoteCard
+                key={note._id}
+                note={note}
+                onEdit={handleEditNote}
+                onDelete={handleDeleteNote}
+                onTogglePin={handleTogglePin}
+              />
+            ))
+          )}
+        </div>
       </div>
 
-      <div className="notes-grid">
-        {filteredNotes.length === 0 ? (
-          <p className="empty">No notes yet. Create one!</p>
-        ) : (
-          filteredNotes.map(note => (
-            <NoteCard
-              key={note._id}
-              note={note}
-              onEdit={() => openModal(note)}
-              onDelete={() => handleDelete(note._id)}
-              onPin={() => handlePin(note._id)}
-            />
-          ))
-        )}
-      </div>
-
-      <NoteModal
-        isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingNote(null);
-        }}
-        onSave={handleSave}
-        editingNote={editingNote}
-      />
+      {isModalOpen && (
+        <NoteModal
+          isOpen={isModalOpen}
+          editingNote={editingNote}
+          onSave={handleSaveNote}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingNote(null);
+          }}
+        />
+      )}
     </div>
   );
 }
