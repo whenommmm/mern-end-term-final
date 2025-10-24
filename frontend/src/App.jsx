@@ -22,7 +22,7 @@ function App() {
 
   const fetchNotes = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/notes');
+      const res = await fetch('https://quicknotes-backend.onrender.com/api/notes');
       const data = await res.json();
       setNotes(data);
       setFilteredNotes(data);
@@ -55,7 +55,8 @@ function App() {
     try {
       if (id) {
         // Update
-        const res = await fetch(`http://localhost:5001/api/notes/${id}`, {
+        const res = await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}`, {
+
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(noteData),
@@ -64,7 +65,7 @@ function App() {
         setNotes(notes.map(n => n._id === id ? updated : n));
       } else {
         // Create
-        const res = await fetch('http://localhost:5001/api/notes', {
+        const res = await fetch('https://quicknotes-backend.onrender.com/api/notes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(noteData),
@@ -83,7 +84,8 @@ function App() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this note?')) return;
     try {
-      await fetch(`http://localhost:5001/api/notes/${id}`, { method: 'DELETE' });
+      await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}`, { method: 'DELETE' });
+
       setNotes(notes.filter(n => n._id !== id));
     } catch (err) {
       alert('Delete failed');
@@ -92,7 +94,7 @@ function App() {
 
   const handlePin = async (id) => {
     try {
-      await fetch(`http://localhost:5001/api/notes/${id}/pin`, { method: 'PATCH' });
+await fetch(`https://quicknotes-backend.onrender.com/api/notes/${id}/pin`, { method: 'PATCH' });
       setNotes(notes.map(n => n._id === id ? { ...n, isPinned: !n.isPinned } : n));
     } catch (err) {
       alert('Pin failed');
